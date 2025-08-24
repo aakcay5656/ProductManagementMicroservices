@@ -1,10 +1,14 @@
 using Auth.Application;
 using Auth.Infrastructure;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +25,18 @@ builder.Services.AddControllers();
 // Layer Dependencies
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+    });
+});
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -91,6 +107,9 @@ builder.Services.AddCors(options =>
 // Health Checks -  DÜZELTME: EF Core health check için doðru paket gerekli
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<Auth.Infrastructure.Data.AuthDbContext>();
+
+builder.Services.AddHttpClient<ILogService, HttpLogService>();
+builder.Services.AddScoped<ILogService, HttpLogService>();
 
 var app = builder.Build();
 

@@ -1,7 +1,11 @@
 ﻿using Auth.Application.DTOs;
 using Auth.Application.Features.Commands;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Events;
+using MassTransit;
+using Shared.Services;
 
 namespace Auth.API.Controllers
 {
@@ -10,11 +14,16 @@ namespace Auth.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IMediator mediator, ILogger<AuthController> logger)
+        public AuthController(
+            IMediator mediator,
+            IPublishEndpoint publishEndpoint,
+            ILogger<AuthController> logger)
         {
             _mediator = mediator;
+            _publishEndpoint = publishEndpoint;
             _logger = logger;
         }
 
@@ -28,23 +37,31 @@ namespace Auth.API.Controllers
                     Email = registerDto.Email,
                     Password = registerDto.Password,
                     FirstName = registerDto.FirstName,
-                    LastName = registerDto.LastName,
-                    IpAddress = GetClientIpAddress(),
-                    UserAgent = Request.Headers["User-Agent"].ToString()
+                    LastName = registerDto.LastName
                 };
 
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSuccess)
                 {
-                    return BadRequest(new
-                    {
-                        message = result.ErrorMessage,
-                        errors = result.Errors
-                    });
+                    return BadRequest(new { message = result.ErrorMessage });
                 }
 
-                return Ok(new
+                // Event publish
+                var userCreatedEvent = new UserCreatedEvent
+                {
+                    UserId = result.Data!.Id,
+                    Email = result.Data.Email,
+                    FirstName = result.Data.FirstName,
+                    LastName = result.Data.LastName,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _publishEndpoint.Publish(userCreatedEvent);
+
+                _logger.LogInformation("📤 UserCreatedEvent published for UserId: {UserId}", result.Data.Id);
+
+                return CreatedAtAction(nameof(Register), new
                 {
                     message = "User registered successfully",
                     data = result.Data
@@ -62,30 +79,19 @@ namespace Auth.API.Controllers
         {
             try
             {
-                var command = new LoginCommand
-                {
-                    Email = loginDto.Email,
-                    Password = loginDto.Password,
-                    IpAddress = GetClientIpAddress(),
-                    UserAgent = Request.Headers["User-Agent"].ToString()
-                };
-
-                var result = await _mediator.Send(command);
+                var query = new LoginCommand { Email = loginDto.Email, Password = loginDto.Password };
+                var result = await _mediator.Send(query);
 
                 if (!result.IsSuccess)
                 {
                     return Unauthorized(new { message = result.ErrorMessage });
                 }
 
-                return Ok(new
-                {
-                    message = "Login successful",
-                    data = result.Data
-                });
+                return Ok(new { message = "Login successful", data = result.Data });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during user login");
+                _logger.LogError(ex, "Error during login");
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
@@ -135,5 +141,8 @@ namespace Auth.API.Controllers
             }
             return ipAddress ?? "Unknown";
         }
+
+    
+        
     }
 }

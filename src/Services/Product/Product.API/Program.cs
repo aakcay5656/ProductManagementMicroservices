@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Product.API.Consumers;
 using Product.Application;
 using Product.Infrastructure;
 using Serilog;
 using System.Text;
+using Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +67,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+// MassTransit Configuration
+builder.Services.AddMassTransit(x =>
+{
+    // Consumer'ı kaydet
+    x.AddConsumer<UserCreatedConsumer>();
 
+    // RabbitMQ configuration
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        // User Created Event için queue configuration
+        cfg.ReceiveEndpoint("product-service-user-created", e =>
+        {
+            e.ConfigureConsumer<UserCreatedConsumer>(context);
+        });
+    });
+});
 // Swagger Configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -129,6 +153,11 @@ builder.Services.AddHealthChecks()
     });
 
 builder.Services.AddProblemDetails();
+
+// HttpClient ve LogService'i kaydet  
+builder.Services.AddHttpClient<ILogService, HttpLogService>();
+builder.Services.AddScoped<ILogService, HttpLogService>();
+
 
 var app = builder.Build();
 
