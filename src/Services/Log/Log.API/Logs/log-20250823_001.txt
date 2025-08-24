@@ -1,0 +1,6 @@
+2025-08-23 23:46:56.658 +03:00 [INF] Log Service test endpoint called at "2025-08-23T20:46:56.6570879Z"
+2025-08-23 23:46:56.687 +03:00 [WRN] This is a warning test
+2025-08-23 23:46:56.689 +03:00 [ERR] This is an error test
+2025-08-23 23:46:56.706 +03:00 [INF] HTTP GET /api/v1/Log/test responded 200 in 64.2663 ms
+2025-08-23 23:49:51.734 +03:00 [WRN] string - string | {"ValueKind":"String","$type":"JsonElement"}
+2025-08-23 23:49:51.742 +03:00 [INF] HTTP POST /api/v1/Log/warning responded 200 in 52.9286 ms

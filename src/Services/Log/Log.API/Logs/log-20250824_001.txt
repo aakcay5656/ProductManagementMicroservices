@@ -1,0 +1,10 @@
+2025-08-24 01:19:46.641 +03:00 [INF] ProductService - UserCreatedEvent consumed successfully | {"ValueKind":"Object","$type":"JsonElement"}
+2025-08-24 01:19:46.760 +03:00 [INF] HTTP POST /api/v1/log/information responded 200 in 216.2452 ms
+2025-08-24 02:26:27.698 +03:00 [INF] HTTP GET /index.html responded 404 in 21.3213 ms
+2025-08-24 02:26:29.090 +03:00 [INF] HTTP GET /index.html responded 404 in 1.9059 ms
+2025-08-24 02:26:39.923 +03:00 [INF] HTTP GET / responded 404 in 0.0522 ms
+2025-08-24 02:44:00.550 +03:00 [INF] ProductService - UserCreatedEvent consumed successfully | {"ValueKind":"Object","$type":"JsonElement"}
+2025-08-24 02:44:00.586 +03:00 [INF] HTTP POST /api/v1/log/information responded 200 in 144.3790 ms
+2025-08-24 02:46:37.826 +03:00 [INF] HTTP GET /health responded 200 in 4.0373 ms
+2025-08-24 03:40:31.384 +03:00 [INF] ProductService - UserCreatedEvent consumed successfully | {"ValueKind":"Object","$type":"JsonElement"}
+2025-08-24 03:40:31.396 +03:00 [INF] HTTP POST /api/v1/log/information responded 200 in 21.6805 ms

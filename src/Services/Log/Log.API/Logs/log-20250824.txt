@@ -1,0 +1,2 @@
+2025-08-24 01:19:46.641 +03:00 [INF] ProductService - UserCreatedEvent consumed successfully | {"ValueKind":"Object","$type":"JsonElement"}
+2025-08-24 01:19:46.760 +03:00 [INF] HTTP POST /api/v1/log/information responded 200 in 216.2452 ms
